@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boom It - Het Gezelschapsspel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .game-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .tree-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        .tree {
+            font-size: 120px;
+            color: #8B4513;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        .leaves {
+            font-size: 80px;
+            color: #228B22;
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        .apple {
+            font-size: 40px;
+            position: absolute;
+            transition: top 0.1s linear;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .timer {
+            font-size: 48px;
+            font-weight: bold;
+            color: #FF6B6B;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .question-card {
+            background: #FFF8DC;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #FFD700;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .question-text {
+            font-size: 18px;
+            color: #333;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .question-type {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .start-button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            font-size: 20px;
+            padding: 15px 30px;
+        }
+
+        .final-question {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            color: white;
+            border-left: 5px solid #FF4444;
+        }
+
+        .game-over {
+            background: #FFE4E1;
+            border-left: 5px solid #FF6B6B;
+        }
+
+        .instructions {
+            background: #E6F3FF;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #4A90E2;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            color: #4A90E2;
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .celebration {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            animation: celebrate 0.6s ease-in-out;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @keyframes celebrate {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(-50%) rotate(0deg); }
+            25% { transform: translateX(-50%) rotate(-5deg); }
+            75% { transform: translateX(-50%) rotate(5deg); }
+        }
+
+        .apple.falling {
+            animation: shake 0.1s infinite;
+        }
+
+        .pulse {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 style="color: #4A90E2; margin-bottom: 20px; font-size: 28px;">🍎 Boom It 🌳</h1>
+        
+        <div id="menu" class="screen">
+            <div class="instructions">
+                <h3>Spelregels:</h3>
+                <ul>
+                    <li>De appel valt langzaam van de boom (2,5 minuten)</li>
+                    <li>Geef de telefoon door terwijl je vragen beantwoordt</li>
+                    <li>Als de appel valt, beantwoordt degene met de telefoon een gevoelige vraag</li>
+                    <li>Veel plezier! </li>
+                </ul>
+            </div>
+            <button class="start-button" onclick="startGame()">Start Spel</button>
+        </div>
+
+        <div id="game" class="screen" style="display: none;">
+            <div class="tree-container">
+                <div class="tree">🌳</div>
+                <div class="leaves">🍃</div>
+                <div class="apple" id="apple">🍎</div>
+            </div>
+            
+            <div class="timer" id="timer">2:30</div>
+            
+            <div class="question-card" id="questionCard">
+                <div class="question-text" id="questionText"></div>
+                <div class="question-type" id="questionType"></div>
+            </div>
+            
+            <div class="buttons">
+                <button onclick="nextQuestion()">Volgende Vraag</button>
+                <button onclick="resetGame()" style="background: linear-gradient(45deg, #6c757d, #5a6268);">Opnieuw</button>
+            </div>
+        </div>
+
+        <div id="gameOver" class="screen" style="display: none;">
+            <h2 style="color: #FF6B6B; margin-bottom: 20px;">🍎 De Appel is Gevallen! 🍎</h2>
+            <div class="question-card final-question">
+                <div class="question-text" id="finalQuestionText"></div>
+                <div class="question-type">Gevoelige Vraag</div>
+            </div>
+            <button onclick="resetGame()" class="start-button">Nieuw Spel</button>
+        </div>
+    </div>
+
+    <script>
+        // Vragen arrays
+        const doorgeefVragen = [
+          "Geef de telefoon door aan degene die het meest op jou lijkt.",
+"Geef de telefoon door aan degene die altijd iets grappigs weet te zeggen.",
+"Geef de telefoon door aan degene die volgens jou het best geheimen kan bewaren.",
+"Geef de telefoon door aan degene die jou vaak verrast.",
+"Geef de telefoon door aan degene die je als eerste om hulp zou vragen.",
+"Geef de telefoon door aan degene die het meest verandert als hij of zij boos is.",
+"Geef de telefoon door aan degene die volgens jou de beste smaak heeft.",
+"Geef de telefoon door aan degene die je het meest inspireert.",
+"Geef de telefoon door aan degene die je het beste advies geeft.",
+"Geef de telefoon door aan degene die meestal wint met spelletjes.",
+"Geef de telefoon door aan degene die het vaakst als eerste sorry zegt.",
+"Geef de telefoon door aan degene die meestal de grappigste opmerkingen maakt.",
+"Geef de telefoon door aan degene die het meest lijkt op opa of oma.",
+"Geef de telefoon door aan degene die volgens jou het best kan luisteren.",
+"Geef de telefoon door aan degene die vaak de tv-afstandsbediening claimt.",
+"Geef de telefoon door aan degene die volgens jou het meest avontuurlijk is.",
+"Geef de telefoon door aan degene die het meeste onverwachte dingen zegt of doet.",
+"Geef de telefoon door aan degene die je altijd aan het lachen krijgt.",
+"Geef de telefoon door aan degene die het meest chaotisch is.",
+"Geef de telefoon door aan degene die volgens jou de beste kok is.",
+"Geef de telefoon door aan degene die het meest ongeduldig is.",
+"Geef de telefoon door aan degene die altijd iets kwijt is.",
+"Geef de telefoon door aan degene die je het meest creatief vindt.",
+"Geef de telefoon door aan degene die je het liefst meeneemt naar een festival.",
+"Geef de telefoon door aan degene die het snelst verliefd zou worden.",
+"Geef de telefoon door aan degene die volgens jou de gekste kindertijd-anekdotes heeft.",
+"Geef de telefoon door aan degene die je het liefst als coach zou willen.",
+"Geef de telefoon door aan degene die vaak als eerste ja zegt op een plan.",
+
+        ];
+
+        const persoonlijkeVragen = [
+            "Wat is jouw love language?",
+"Welke baan zou je kiezen als geld geen rol speelde?",
+"Waar krijg jij de meeste complimentjes over?",
+"Wat vind jij het mooiste aan jezelf?",
+"Wat was de leukste leeftijd die je tot nu toe hebt meegemaakt?",
+"Wat is jouw favoriete herinnering met je familie?",
+"Waar kijk jij altijd naar uit op een dag?",
+"Wat is iets kleins dat jou gelukkig maakt?",
+"Wat vond je vroeger leuk dat je nu niet meer doet?",
+"Wat is een traditie of gewoonte in je gezin die je waardeert?",
+"Als je één dag opnieuw mocht beleven, welke zou dat zijn?",
+"Wat is een talent of eigenschap van jou waar je trots op bent?",
+"Op wie in je familie lijk jij het meest, denk je?",
+"Wat vind jij een belangrijke eigenschap in een vriend?",
+"Wat is jouw favoriete plek in huis?",
+"Wat was jouw eerste hobby?",
+"Welke geur of welk liedje doet jou meteen aan vroeger denken?",
+"Wat is een kleine gewoonte van jou die typisch bij jou hoort?",
+"Welke dag of periode zou je nog een keer willen meemaken?",
+"Wat vind je fijn om samen met je familie te doen?",
+"Als je een dier mocht zijn voor een dag, welk dier zou je kiezen?",
+"Wat was jouw lievelingseten toen je klein was?",
+"Wat zou je doen als je een week geen school, werk of verplichtingen had?",
+"Wat vind jij het leukste aan ouder of kind zijn?",
+"Wat zou je doen als je een dag mocht wisselen van gender?",
+"Wat is een familietraditie die je graag wilt behouden?",
+"Wat is jouw eerste herinnering die je nog goed weet?",
+"Wat deed je het liefst op de basisschool?",
+"Wie in de familie begrijp jij het beste?",
+"Waarvan krijg jij altijd een goed humeur?",
+"Wat vind jij typisch aan jouw familie?",
+"Met wie zou jij een dag willen ruilen en waarom?",
+"Wat is een plek die belangrijk voor jou voelt?",
+"Welke bijnaam had je vroeger of heb je nu?",
+"Welke bijnaam van jou is jouw favoriet?",
+"Wat is een gewoonte van jezelf die grappig of apart is?",
+"Wat is jouw favoriete seizoen en waarom?",
+"Wat deed of doe jij het liefst tijdens de zomervakantie?",
+"Als je een familielid mocht kiezen om mee op reis te gaan, wie zou dat zijn?",
+"Wat was jouw eerste sport of club waar je bij zat?",
+"Wat vind jij een ultiem troosteten?",
+"Welke film of serie heb jij het vaakst gekeken?",
+"Wat vind jij de leukste gezinsactiviteit?",
+"Wat wilde je vroeger worden toen je klein was?",
+"Welke schooldag herinner jij je nog goed en waarom?",
+"Wat is jouw lievelingsplek buitenshuis?",
+"Wat is een kledingstuk waar je een leuke herinnering aan hebt?",
+"Wat doe jij graag als je even helemaal niets hoeft?",
+
+        ];
+
+        const gevoeligeVragen = [
+          "Welke eigenschap van jezelf zou je graag willen veranderen?",
+"Waar ben je het meest trots op in je leven?",
+"Wat zou je tegen je toekomstige zelf willen zeggen?",
+"Hoe zie jij onze relatie over 10 jaar?",
+"Wat is iets dat je tegen jezelf van 10 jaar geleden zou willen zeggen?",
+"Wat is het moeilijkste gesprek dat je ooit hebt gehad?",
+"Wat denk je dat anderen het meeste waarderen aan jou?",
+"Welke jeugdherinnering heeft jou het meest gevormd?",
+"Wat is het belangrijkste advies dat je ooit hebt gekregen?",
+"Wat is het mooiste compliment dat je ooit hebt gekregen?",
+"Welke zorg of angst heb je soms die anderen niet altijd zien?",
+"Wat vind je soms lastig om uit te leggen aan je ouders of kinderen?",
+"Wanneer voelde jij je voor het laatst echt trots op jezelf?",
+"Wat is een moment dat je graag zou willen terugdraaien?",
+"Wat maakt jou soms verdrietig maar zeg je niet snel?",
+"Wanneer heb jij je het meest gesteund gevoeld door iemand in je familie?",
+"Wat vind jij moeilijk aan volwassen worden of kind zijn?",
+"Wat zou jij meer willen begrijpen van je ouder of kind?",
+"Wat is iets dat je anders zou willen doen in je relatie met je familie?",
+"Wat is een kwaliteit van jezelf waar je nog in wilt groeien?",
+"Wat zou je willen dat mensen vaker aan je vragen?",
+"Wanneer voelde jij je voor het laatst echt boos of gefrustreerd en waarom?",
+"Wat is iets waarvan je bang bent dat anderen het niet begrijpen bij jou?",
+"Wat zou je willen dat je familie anders aanpakt?",
+"Waar ben je het meest dankbaar voor in je familie?",
+"Wanneer voelde jij je voor het laatst buitengesloten?",
+"Wat is iets wat je vaak denkt maar zelden zegt?",
+"Wat zou je willen dat anderen meer waarderen aan jou?",
+"Wat is een lastige keuze die je ooit moest maken?",
+"Wat is iets waar je nu nog steeds van leert?",
+
+        ];
+
+        let gameTimer;
+        let timeLeft = 150; // 2.5 minuten in seconden
+        let applePosition = 100; // Start positie van de appel (in px van boven)
+        let gameActive = false;
+        let usedQuestions = {
+            doorgeef: [],
+            persoonlijk: []
+        };
+
+        function startGame() {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            document.getElementById('gameOver').style.display = 'none';
+            
+            timeLeft = 150;
+            applePosition = 100;
+            gameActive = true;
+            
+            // Reset gebruikte vragen
+            usedQuestions = {
+                doorgeef: [],
+                persoonlijk: []
+            };
+            
+            updateApplePosition();
+            startTimer();
+            nextQuestion();
+        }
+
+        function startTimer() {
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                updateApplePosition();
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+                
+                // Appel begint te schudden in laatste 30 seconden
+                const apple = document.getElementById('apple');
+                if (timeLeft <= 30) {
+                    apple.classList.add('falling');
+                } else {
+                    apple.classList.remove('falling');
+                }
+                
+                // Timer wordt rood en pulseert in laatste 10 seconden
+                const timer = document.getElementById('timer');
+                if (timeLeft <= 10) {
+                    timer.classList.add('pulse');
+                    timer.style.color = '#FF0000';
+                } else {
+                    timer.classList.remove('pulse');
+                    timer.style.color = '#FF6B6B';
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateApplePosition() {
+            // Appel valt geleidelijk van 100px naar 200px
+            const progress = (150 - timeLeft) / 150;
+            applePosition = 100 + (progress * 100);
+            document.getElementById('apple').style.top = `${applePosition}px`;
+        }
+
+        function getRandomQuestion(type) {
+            let questions, used;
+            
+            if (type === 'doorgeef') {
+                questions = doorgeefVragen;
+                used = usedQuestions.doorgeef;
+            } else {
+                questions = persoonlijkeVragen;
+                used = usedQuestions.persoonlijk;
+            }
+            
+            // Als alle vragen zijn gebruikt, reset de lijst
+            if (used.length >= questions.length) {
+                used.length = 0;
+            }
+            
+            let availableQuestions = questions.filter((_, index) => !used.includes(index));
+            let randomIndex = Math.floor(Math.random() * availableQuestions.length);
+            let selectedQuestion = availableQuestions[randomIndex];
+            
+            // Voeg de originele index toe aan gebruikte vragen
+            let originalIndex = questions.indexOf(selectedQuestion);
+            used.push(originalIndex);
+            
+            return selectedQuestion;
+        }
+
+        function nextQuestion() {
+            if (!gameActive) return;
+            
+            // Wissel tussen doorgeef en persoonlijke vragen
+            const questionType = Math.random() < 0.6 ? 'doorgeef' : 'persoonlijk';
+            const question = getRandomQuestion(questionType);
+            
+            document.getElementById('questionText').textContent = question;
+            document.getElementById('questionType').textContent = 
+                questionType === 'doorgeef' ? 'Doorgeef Vraag' : 'Persoonlijke Vraag';
+            
+            // Voeg een klein visueel effect toe
+            const card = document.getElementById('questionCard');
+            card.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                card.style.transform = 'scale(1)';
+            }, 150);
+        }
+
+        function endGame() {
+            clearInterval(gameTimer);
+            gameActive = false;
+            
+            // Toon de finale vraag
+            const finalQuestion = gevoeligeVragen[Math.floor(Math.random() * gevoeligeVragen.length)];
+            document.getElementById('finalQuestionText').textContent = finalQuestion;
+            
+            // Verberg het spel en toon game over scherm
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('gameOver').style.display = 'block';
+            
+            // Voeg een celebratie effect toe
+            showCelebration();
+        }
+
+        function showCelebration() {
+            const celebration = document.createElement('div');
+            celebration.className = 'celebration';
+            celebration.textContent = '💥';
+            document.querySelector('.game-container').appendChild(celebration);
+            
+            setTimeout(() => {
+                celebration.remove();
+            }, 600);
+        }
+
+        function resetGame() {
+            clearInterval(gameTimer);
+            gameActive = false;
+            
+            // Reset alle schermen
+            document.getElementById('menu').style.display = 'block';
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('gameOver').style.display = 'none';
+            
+            // Reset appel positie
+            document.getElementById('apple').style.top = '100px';
+            document.getElementById('apple').classList.remove('falling');
+            
+            // Reset timer styling
+            const timer = document.getElementById('timer');
+            timer.classList.remove('pulse');
+            timer.style.color = '#FF6B6B';
+        }
+
+        // Voorkom dat de pagina refresht bij spatie of enter
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space' && gameActive) {
+                e.preventDefault();
+                nextQuestion();
+            }
+        });
+    </script>
+</body>
+</html>
