@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vang de appel - Het Gezelschapsspel</title>
+    <title>Vang de appel - Het Gezelschapsspel @olinland_</title>
     <style>
         * {
             margin: 0;
@@ -205,11 +205,35 @@
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
+
+        .copyright-credit {
+            color: #6c757d;
+            font-size: 12px;
+            font-style: italic;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 20px;
+                width: 95%;
+            }
+            
+            h1 {
+                font-size: 24px !important;
+            }
+            
+            .copyright-credit {
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <h1 style="color: #4A90E2; margin-bottom: 20px; font-size: 28px;">🍎 Vang de appel 🌳</h1>
+        <h1 style="color: #4A90E2; margin-bottom: 10px; font-size: 28px;">🍎 Vang de appel 🌳</h1>
+        <p style="color: #6c757d; font-size: 14px; margin-bottom: 20px; font-style: italic;">© @olinland_ · 2025</p>
         
         <div id="menu" class="screen">
             <div class="instructions">
@@ -251,6 +275,7 @@
                 <div class="question-type">Gevoelige Vraag</div>
             </div>
             <button onclick="resetGame()" class="start-button">Nieuw Spel</button>
+            <p class="copyright-credit">© @olinland_ · 2025</p>
         </div>
     </div>
 
